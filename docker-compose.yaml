@@ -10,5 +10,16 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
+  mlflow-server:
+    build:
+      context: .
+      dockerfile: Dockerfile.mlflow
+    ports:
+      - "5000:5000"
+    volumes:
+      - mlflow-data:/mlflow
+
 volumes:
   postgres_data:
+  mlflow-data:
+    name: mlflow-data

@@ -17,7 +17,7 @@ async def init_db() -> None:
         await conn.run_sync(SQLModel.metadata.create_all)
 
 
-# holt aktuelle db session
+# get current session
 async def get_session():
     Session = sessionmaker(
         bind=async_engine, class_=AsyncSession, expire_on_commit=False
