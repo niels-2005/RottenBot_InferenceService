@@ -1,11 +1,29 @@
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
-from .utils.load_model import load_model_from_mlflow
+from .utils.load_model import load_model_from_mlflow, load_classes_from_mlflow
+from .inference.routes import inference_router
+from .config import Config
+import os
+import mlflow
+from .db.main import init_db
+
+# path where the model and index_to_class.json will be stored
+DST_PATH = "./model"
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    app.state.model = load_model_from_mlflow()
+    # await init_db()
+
+    if not os.path.exists(DST_PATH):
+        os.makedirs(DST_PATH)
+
+    mlflow.set_tracking_uri(Config.MLFLOW_TRACKING_URI)
+
+    app.state.index_to_class = load_classes_from_mlflow(
+        run_id=Config.RUN_ID, dst_path=DST_PATH
+    )
+    app.state.model = load_model_from_mlflow(Config.MODEL_URI, DST_PATH)
     print("Model loaded and ready to use.")
     yield
 
@@ -34,6 +52,8 @@ app = FastAPI(
 # register_error_handlers(app)
 # register_middleware(app)
 
-
+app.include_router(
+    inference_router, prefix=f"{version_prefix}/inference", tags=["inference"]
+)
 # app.include_router(book_router, prefix=f"{version_prefix}/books", tags=["books"])
 # app.include_router(auth_router, prefix=f"{version_prefix}/auth", tags=["auth"])

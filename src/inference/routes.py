@@ -1,19 +1,39 @@
-from fastapi import APIRouter, UploadFile, HTTPException, Request
+from fastapi import (
+    APIRouter,
+    UploadFile,
+    HTTPException,
+    Request,
+    Depends,
+    BackgroundTasks,
+)
 from fastapi.responses import JSONResponse
 from .service import InferenceService
+from .schemas import PredictionResponse
 import numpy as np
+from src.db.main import get_session
+from sqlmodel.ext.asyncio.session import AsyncSession
+import uuid
+from datetime import datetime
 
-
-router = APIRouter()
+inference_router = APIRouter()
 inference_service = InferenceService()
 
 
-def confidence_below_threshold(confidence: float, threshold: float = 0.9) -> bool:
-    return confidence < threshold
+def generate_image_path(filename: str) -> str:
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    unique_id = uuid.uuid4().hex[:8]
+    extension = filename.split(".")[-1] if "." in filename else "jpg"
+    return f"{timestamp}_{unique_id}.{extension}"
 
 
-@router.post("/predict")
-async def predict(file: UploadFile, save_prediction: bool, request: Request):
+@inference_router.post("/predict", response_model=PredictionResponse)
+async def predict(
+    file: UploadFile,
+    save_prediction: bool,
+    request: Request,
+    background_tasks: BackgroundTasks,
+    session: AsyncSession = Depends(get_session),
+):
     # this is optional, type checking should be handled in the frontend
     if file.content_type not in ["image/jpeg", "image/png", "image/jpg"]:
         raise HTTPException(
@@ -21,32 +41,37 @@ async def predict(file: UploadFile, save_prediction: bool, request: Request):
             detail="Invalid file type. Only JPEG, JPG, and PNG are supported.",
         )
 
-    prediction, confidence = await inference_service.predict(
-        file,
+    contents = await file.read()
+    await file.seek(0)
+
+    # get the predicted_class, predicted_class_name and confidence from the model
+    prediction_info = await inference_service.predict(
+        contents,
         request.app.state.model,
-        save_prediction,
+        request.app.state.index_to_class,
     )
 
-    if prediction is None or confidence is None:
+    # raise an error if the prediction failed
+    if prediction_info is None:
         raise HTTPException(status_code=500, detail="Error during prediction.")
 
-    if confidence_below_threshold(confidence, threshold=0.9):
-        return JSONResponse(
-            status_code=400,
-            content={
-                "success": False,
-                "info": "Low confidence in prediction. Use the provided hints to improve the image quality.",
-                "confidence": confidence,
-            },
+    if save_prediction:
+        image_path = generate_image_path(file.filename)
+        # FastAPI Background tasks is a MVP solution, migrate to Celery for a more scalable solution.
+        # for a absolute scalable solution, build a seperate microservice
+        # save the prediction in the background, only if the user accepts
+        background_tasks.add_task(
+            inference_service.save_prediction_to_db,
+            prediction_info,
+            image_path,
+            session,
         )
-    else:
-        # TODO: Log class names to mlflow and get them here.
-        predicted_class = np.argmax(prediction)
-        return JSONResponse(
-            status_code=200,
-            content={
-                "success": True,
-                "predicted_class": predicted_class,  # class names needed here: class_names[predicted_class]
-                "confidence": confidence,
-            },
+
+        # save the image to s3 in the background
+        background_tasks.add_task(
+            inference_service.save_image_to_s3,
+            image_path,
+            contents,
         )
+
+    return PredictionResponse(**prediction_info)

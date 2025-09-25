@@ -1,28 +1,64 @@
-from fastapi import UploadFile, BackgroundTasks
-from .utils import preprocess_image, get_prediction
+from fastapi import UploadFile
+from .utils import preprocess_image, get_prediction, connect_to_s3
 import numpy as np
 import tensorflow as tf
+from .models import Prediction
+from sqlmodel.ext.asyncio.session import AsyncSession
+import uuid
+from src.config import Config
+from typing import Any
+import io
 
 
 class InferenceService:
     async def predict(
-        file: UploadFile,
+        self,
+        contents: bytes,
         model: tf.keras.Model,
-        save_prediction: bool,
-        background_tasks: BackgroundTasks,
-    ):
+        index_to_class: dict[str, str],
+    ) -> dict[str, Any] | None:
         try:
-            image = await preprocess_image(file, (224, 224))
+            image = await preprocess_image(contents, (224, 224))
 
             prediction = get_prediction(model, image)
-            confidence = float(np.max(prediction))
+            predicted_class = np.argmax(prediction)
 
-            if save_prediction:
-                pass
-
-            return prediction, confidence
+            return {
+                "predicted_class": predicted_class,
+                "predicted_class_name": index_to_class[str(predicted_class)],
+                "confidence": float(np.max(prediction)),
+            }
         except Exception as e:
-            return None, None
+            print(f"Error during prediction: {e}")
+            return None
 
-    async def save_prediction():
-        pass
+    async def save_prediction_to_db(
+        self,
+        prediction_info: dict[str, Any],
+        image_path: str,
+        session: AsyncSession,
+    ):
+        try:
+            uid = uuid.uuid4()
+            new_prediction = Prediction(
+                image_path=image_path,
+                **prediction_info,
+                user_uid=uid,  # placeholder user id, to be replaced when user management is implemented
+            )
+            session.add(new_prediction)
+            # push new prediction to the db
+            await session.commit()
+        except Exception as e:
+            print(f"Error saving prediction: {e}")
+
+    async def save_image_to_s3(
+        self,
+        image_path: str,
+        contents: bytes,
+    ):
+        try:
+            s3 = connect_to_s3()
+            # upload the image to the bucket
+            s3.upload_fileobj(io.BytesIO(contents), "images", image_path)
+        except Exception as e:
+            print(f"Error saving image to S3: {e}")

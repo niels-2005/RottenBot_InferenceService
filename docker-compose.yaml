@@ -1,5 +1,7 @@
 services:
+  # postgres service.
   postgres:
+    container_name: postgres
     image: postgres:latest
     ports:
       - "5432:5432"
@@ -9,8 +11,9 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
     volumes:
       - postgres_data:/var/lib/postgresql/data
-
+  # mlflow service.
   mlflow-server:
+    container_name: mlflow-server
     build:
       context: .
       dockerfile: Dockerfile.mlflow
@@ -18,8 +21,26 @@ services:
       - "5000:5000"
     volumes:
       - mlflow-data:/mlflow
+  # minio service. simulate s3 for local dev.
+  minio:
+    container_name: minio 
+    image: quay.io/minio/minio
+    ports:
+      - "8997:8997" # API-Port
+      - "8998:8998" # Console-Port
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    volumes:
+      - minio-data:/data
+    command: server /data --address :8997 --console-address :8998
+
+
 
 volumes:
   postgres_data:
+    name: postgres-data
   mlflow-data:
     name: mlflow-data
+  minio-data:
+    name: minio-data
