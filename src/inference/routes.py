@@ -53,7 +53,9 @@ async def predict(
 
     # raise an error if the prediction failed
     if prediction_info is None:
-        raise HTTPException(status_code=500, detail="Error during prediction.")
+        raise HTTPException(
+            status_code=500, detail="Ooops! Something went wrong during prediction."
+        )
 
     if save_prediction:
         image_path = generate_image_path(file.filename)

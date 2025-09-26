@@ -11,6 +11,9 @@ import io
 
 
 class InferenceService:
+    def __init__(self):
+        self.s3 = connect_to_s3()
+
     async def predict(
         self,
         contents: bytes,
@@ -57,8 +60,7 @@ class InferenceService:
         contents: bytes,
     ):
         try:
-            s3 = connect_to_s3()
             # upload the image to the bucket
-            s3.upload_fileobj(io.BytesIO(contents), "images", image_path)
+            self.s3.upload_fileobj(io.BytesIO(contents), "images", image_path)
         except Exception as e:
             print(f"Error saving image to S3: {e}")
