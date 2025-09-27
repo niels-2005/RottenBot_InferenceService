@@ -20,7 +20,7 @@ class Prediction(SQLModel, table=True):
     predicted_class_name: str = Field(sa_column=Column(pg.TEXT, nullable=False))
     confidence: float = Field(sa_column=Column(pg.FLOAT, nullable=False))
 
-    # foreign_key="users.uid" later when user management is implemented
+    # foreign_key="user_accounts.uid" later when user management is implemented
     user_uid: uuid.UUID = Field(default=None, nullable=False)
 
     created_at: datetime = Field(sa_column=Column(pg.TIMESTAMP, default=datetime.now))
