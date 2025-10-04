@@ -30,6 +30,7 @@ def generate_image_path(filename: str) -> str:
 async def predict(
     file: UploadFile,
     save_prediction: bool,
+    user_uid: uuid.UUID,
     request: Request,
     background_tasks: BackgroundTasks,
     session: AsyncSession = Depends(get_session),
@@ -38,7 +39,7 @@ async def predict(
     if file.content_type not in ["image/jpeg", "image/png", "image/jpg"]:
         raise HTTPException(
             status_code=400,
-            detail="Invalid file type. Only JPEG, JPG, and PNG are supported.",
+            detail=f"Invalid file type. Only JPEG, JPG, and PNG are supported. Got {file.content_type}",
         )
 
     contents = await file.read()
@@ -66,6 +67,7 @@ async def predict(
             inference_service.save_prediction_to_db,
             prediction_info,
             image_path,
+            user_uid,
             session,
         )
 

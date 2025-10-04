@@ -39,14 +39,14 @@ class InferenceService:
         self,
         prediction_info: dict[str, Any],
         image_path: str,
+        user_uid: uuid.UUID,
         session: AsyncSession,
     ):
         try:
-            uid = uuid.uuid4()
             new_prediction = Prediction(
                 image_path=image_path,
                 **prediction_info,
-                user_uid=uid,  # placeholder user id, to be replaced when user management is implemented
+                user_uid=user_uid,
             )
             session.add(new_prediction)
             # push new prediction to the db

@@ -2,4 +2,8 @@ Start the development server with:
 
 be in root. 
 
-uvicorn src.main:app --reload
+uvicorn src.main:app --reload 
+
+use uvicorn with different port 
+
+uvicorn src.main:app --reload --port 8001

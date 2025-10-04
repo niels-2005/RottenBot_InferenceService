@@ -1,16 +1,16 @@
 services:
   # postgres service.
-  postgres:
-    container_name: postgres
-    image: postgres:latest
-    ports:
-      - "5432:5432"
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
+  # postgres:
+  #   container_name: postgres
+  #   image: postgres:latest
+  #   ports:
+  #     - "5432:5432"
+  #   environment:
+  #     POSTGRES_USER: ${POSTGRES_USER}
+  #     POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+  #     POSTGRES_DB: ${POSTGRES_DB}
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
   # mlflow service.
   mlflow-server:
     container_name: mlflow-server
@@ -23,7 +23,7 @@ services:
       - mlflow-data:/mlflow
   # minio service. simulate s3 for local dev.
   minio:
-    container_name: minio 
+    container_name: minio
     image: quay.io/minio/minio
     ports:
       - "8997:8997" # API-Port
@@ -34,8 +34,6 @@ services:
     volumes:
       - minio-data:/data
     command: server /data --address :8997 --console-address :8998
-
-
 
 volumes:
   postgres_data:
