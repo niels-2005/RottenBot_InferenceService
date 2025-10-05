@@ -1,16 +1,19 @@
-from opentelemetry import trace
+from opentelemetry import trace, metrics
 from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
 from opentelemetry.exporter.otlp.proto.grpc._log_exporter import OTLPLogExporter
+from opentelemetry.exporter.otlp.proto.grpc.metric_exporter import OTLPMetricExporter
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.sdk.resources import Resource
 from opentelemetry._logs import set_logger_provider
 from opentelemetry.sdk._logs import LoggerProvider, LoggingHandler
 from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
+from opentelemetry.sdk.metrics import MeterProvider
+from opentelemetry.sdk.metrics.export import PeriodicExportingMetricReader
 import logging
 
 
-def setup_tracing_and_logging(service_name: str = "my-app"):
+def setup_observability(service_name: str = "my-app"):
     resource = Resource.create({"service.name": service_name})
 
     # Tracing Setup
@@ -30,9 +33,23 @@ def setup_tracing_and_logging(service_name: str = "my-app"):
     logging.getLogger().addHandler(handler)
     logging.getLogger().setLevel(logging.INFO)
 
-    return trace.get_tracer(__name__)
+    # Metrics Setup
+    metric_exporter = OTLPMetricExporter(
+        endpoint="http://localhost:4317", insecure=True
+    )
+    metric_reader = PeriodicExportingMetricReader(
+        metric_exporter, export_interval_millis=15000
+    )
+    meter_provider = MeterProvider(resource=resource, metric_readers=[metric_reader])
+    metrics.set_meter_provider(meter_provider)
+
+    return trace.get_tracer(__name__), metrics.get_meter(__name__)
 
 
 # Helper-Funktion für andere Module
 def get_tracer(module_name: str):
     return trace.get_tracer(module_name)
+
+
+def get_meter(module_name: str):
+    return metrics.get_meter(module_name)

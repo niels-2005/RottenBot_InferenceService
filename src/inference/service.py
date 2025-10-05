@@ -6,7 +6,7 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 import uuid
 from typing import Any
 import io
-from .setup_tracing_logging import get_tracer
+from .setup_observability import get_tracer
 import logging
 
 tracer = get_tracer(__name__)

@@ -12,16 +12,28 @@ from .schemas import PredictionResponse
 from src.db.main import get_session
 from sqlmodel.ext.asyncio.session import AsyncSession
 import uuid
-from .setup_tracing_logging import setup_tracing_and_logging, get_tracer
+from .setup_observability import setup_observability
 import logging
 import uuid
+import time
 
-setup_tracing_and_logging("inference_service")
-tracer = get_tracer(__name__)
+tracer, meter = setup_observability("inference_service")
 logger = logging.getLogger(__name__)
 
 inference_router = APIRouter()
 inference_service = InferenceService()
+
+prediction_api_counter = meter.create_counter(
+    name="prediction_api_requests_total",
+    description="Total number of prediction API requests",
+    unit="1",
+)
+
+prediction_api_duration = meter.create_histogram(
+    name="prediction_api_duration_seconds",
+    description="Prediction API request duration",
+    unit="s",
+)
 
 
 @inference_router.post("/predict", response_model=PredictionResponse)
@@ -33,6 +45,11 @@ async def predict(
     background_tasks: BackgroundTasks,
     session: AsyncSession = Depends(get_session),
 ):
+    start_time = time.time()
+    prediction_api_counter.add(
+        1,
+        {"endpoint": "/predict", "method": "POST", "service_name": "inference_service"},
+    )
     with tracer.start_as_current_span("predict_endpoint") as prediction_entry_span:
         logger.info(
             f"User {user_uid} requested a prediction with save_prediction={save_prediction}."
@@ -125,6 +142,15 @@ async def predict(
                         contents,
                         user_uid,
                     )
+        duration = time.time() - start_time
+        prediction_api_duration.record(
+            duration,
+            {
+                "endpoint": "/predict",
+                "method": "POST",
+                "service_name": "inference_service",
+            },
+        )
         logger.info(
             f"Returning prediction response for user {user_uid}. Completed successfully."
         )
