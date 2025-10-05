@@ -11,6 +11,8 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - default
   # mlflow service.
   mlflow-server:
     container_name: mlflow-server

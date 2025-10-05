@@ -30,9 +30,9 @@ prediction_api_counter = meter.create_counter(
 )
 
 prediction_api_duration = meter.create_histogram(
-    name="prediction_api_duration_seconds",
+    name="prediction_api_duration_milliseconds",
     description="Prediction API request duration",
-    unit="s",
+    unit="ms",
 )
 
 
@@ -142,9 +142,9 @@ async def predict(
                         contents,
                         user_uid,
                     )
-        duration = time.time() - start_time
+        duration_ms = (time.time() - start_time) * 1000
         prediction_api_duration.record(
-            duration,
+            duration_ms,
             {
                 "endpoint": "/predict",
                 "method": "POST",
