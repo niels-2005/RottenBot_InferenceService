@@ -1,12 +1,14 @@
-from typing import Tuple
-import tensorflow as tf
-import numpy as np
 import io
-import boto3
-from src.config import Config
-from datetime import datetime
-import uuid
 import logging
+import uuid
+from datetime import datetime
+from typing import Tuple
+
+import boto3
+import numpy as np
+import tensorflow as tf
+
+from src.config import Config
 
 logger = logging.getLogger(__name__)
 

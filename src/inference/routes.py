@@ -1,21 +1,17 @@
-from fastapi import (
-    APIRouter,
-    UploadFile,
-    HTTPException,
-    Request,
-    Depends,
-    BackgroundTasks,
-)
-from .utils import generate_image_path
-from .service import InferenceService
-from .schemas import PredictionResponse
-from src.db.main import get_session
-from sqlmodel.ext.asyncio.session import AsyncSession
-import uuid
-from .setup_observability import setup_observability
 import logging
-import uuid
 import time
+import uuid
+
+from fastapi import (APIRouter, BackgroundTasks, Depends, HTTPException,
+                     Request, UploadFile)
+from sqlmodel.ext.asyncio.session import AsyncSession
+
+from src.db.main import get_session
+
+from .schemas import PredictionResponse
+from .service import InferenceService
+from .setup_observability import setup_observability
+from .utils import generate_image_path
 
 tracer, meter = setup_observability("inference_service")
 logger = logging.getLogger(__name__)

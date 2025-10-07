@@ -1,13 +1,15 @@
-from .utils import preprocess_image, get_prediction, connect_to_s3
-import numpy as np
-import tensorflow as tf
-from .models import Prediction
-from sqlmodel.ext.asyncio.session import AsyncSession
+import io
+import logging
 import uuid
 from typing import Any
-import io
+
+import numpy as np
+import tensorflow as tf
+from sqlmodel.ext.asyncio.session import AsyncSession
+
+from .models import Prediction
 from .setup_observability import get_tracer
-import logging
+from .utils import connect_to_s3, get_prediction, preprocess_image
 
 tracer = get_tracer(__name__)
 logger = logging.getLogger(__name__)

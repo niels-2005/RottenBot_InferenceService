@@ -1,11 +1,13 @@
-from fastapi import FastAPI
-from contextlib import asynccontextmanager
-from .utils.load_model import load_model_from_mlflow, load_classes_from_mlflow
-from .inference.routes import inference_router
-from .config import Config
 import os
+from contextlib import asynccontextmanager
+
 import mlflow
+from fastapi import FastAPI
+
+from .config import Config
 from .db.main import init_db
+from .inference.routes import inference_router
+from .utils.load_model import load_classes_from_mlflow, load_model_from_mlflow
 
 # path where the model and index_to_class.json will be stored
 DST_PATH = "./model"

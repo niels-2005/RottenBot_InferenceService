@@ -1,8 +1,9 @@
-import sqlalchemy.dialects.postgresql as pg
-from sqlalchemy.sql import func
-from sqlmodel import SQLModel, Field, Column
 import uuid
 from datetime import datetime
+
+import sqlalchemy.dialects.postgresql as pg
+from sqlalchemy.sql import func
+from sqlmodel import Column, Field, SQLModel
 
 
 class Prediction(SQLModel, table=True):

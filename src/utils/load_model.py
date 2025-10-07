@@ -1,7 +1,8 @@
+import json
+from typing import Dict
+
 import mlflow
 import tensorflow as tf
-from typing import Dict
-import json
 
 
 def load_model_from_mlflow(model_uri: str, dst_path: str) -> tf.keras.Model:

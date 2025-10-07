@@ -1,8 +1,9 @@
-import requests
 import random
-import uuid
 import time
+import uuid
 from pathlib import Path
+
+import requests
 
 # Konfiguration
 API_URL = "http://127.0.0.1:8000/api/v1/inference/predict"
