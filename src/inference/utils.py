@@ -16,15 +16,15 @@ logger = logging.getLogger(__name__)
 async def preprocess_image(contents: bytes, image_size: Tuple[int, int]) -> tf.Tensor:
     """Preprocesses an uploaded image file for model inference.
 
-    Loads the image from the uploaded file, resizes it to the specified dimensions,
+    Loads the image from the provided bytes, resizes it to the specified dimensions,
     converts it to a numpy array, and adds a batch dimension for TensorFlow model input.
 
     Args:
-        file (UploadFile): The uploaded image file from the FastAPI request.
+        contents (bytes): The image file contents as bytes.
         image_size (Tuple[int, int]): The target size (height, width) to resize the image to.
 
     Returns:
-        tf.Tensor: The preprocessed image as a 4D tensor with shape (1, height, width, 3).
+        tf.Tensor or None: The preprocessed image as a 4D tensor with shape (1, height, width, 3), or None if an error occurs.
     """
     try:
         image = tf.keras.preprocessing.image.load_img(
@@ -48,7 +48,7 @@ def get_prediction(model: tf.keras.Model, image: tf.Tensor) -> np.ndarray:
         image (tf.Tensor): The preprocessed image tensor with shape (1, height, width, channels).
 
     Returns:
-        numpy.ndarray: The model's prediction output.
+        numpy.ndarray or None: The model's prediction output, or None if an error occurs.
     """
     try:
         return model.predict(image)
@@ -58,6 +58,14 @@ def get_prediction(model: tf.keras.Model, image: tf.Tensor) -> np.ndarray:
 
 
 def connect_to_s3():
+    """Connects to an S3-compatible service using boto3.
+
+    Creates a boto3 client for interacting with an S3-compatible storage service,
+    such as MinIO, using the provided configuration credentials and endpoint URL.
+
+    Returns:
+        boto3.client or None: The S3 client instance if successful, otherwise None.
+    """
     try:
         return boto3.client(
             "s3",
@@ -71,6 +79,17 @@ def connect_to_s3():
 
 
 def generate_image_path(filename: str) -> str:
+    """Generates a unique image path based on the provided filename.
+
+    Creates a unique file path by combining a timestamp, a short UUID, and the file extension
+    from the original filename, ensuring uniqueness for storage purposes.
+
+    Args:
+        filename (str): The original filename, used to extract the file extension.
+
+    Returns:
+        str or None: The generated unique image path if successful, otherwise None.
+    """
     try:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         unique_id = uuid.uuid4().hex[:8]

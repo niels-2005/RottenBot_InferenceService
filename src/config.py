@@ -9,7 +9,7 @@ class Settings(BaseSettings):
     MINIO_ROOT_USER: str
     MINIO_ROOT_PASSWORD: str
     LOCAL_S3_PROXY_SERVICE_URL: str
-
+    OBSERVABILITY_ENDPOINT: str
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
 

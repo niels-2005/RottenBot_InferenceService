@@ -26,6 +26,21 @@ class InferenceService:
         index_to_class: dict[str, str],
         user_uid: uuid.UUID,
     ) -> dict[str, Any] | None:
+        """Performs model inference on the provided image contents.
+
+        Preprocesses the image bytes, runs prediction using the given model,
+        and maps the predicted class index to its name using the index_to_class dictionary.
+
+        Args:
+            contents (bytes): The raw image data as bytes.
+            model (tf.keras.Model): The trained TensorFlow/Keras model for inference.
+            index_to_class (dict[str, str]): A mapping from class index to class name.
+            user_uid (uuid.UUID): The unique identifier of the user requesting the prediction.
+
+        Returns:
+            dict[str, Any] or None: A dictionary containing predicted_class, predicted_class_name,
+            and confidence if successful, otherwise None.
+        """
         try:
             with tracer.start_as_current_span(
                 "preprocess_image"
@@ -70,6 +85,17 @@ class InferenceService:
         user_uid: uuid.UUID,
         session: AsyncSession,
     ):
+        """Saves the prediction information to the database.
+
+        Creates a new Prediction record with the provided details and commits it to the database.
+
+        Args:
+            prediction_info (dict[str, Any]): A dictionary containing prediction details like
+                predicted_class, predicted_class_name, and confidence.
+            image_path (str): The path where the image is stored.
+            user_uid (uuid.UUID): The unique identifier of the user.
+            session (AsyncSession): The database session for committing the changes.
+        """
         try:
             logger.info(
                 f"Saving prediction to DB for user {user_uid} with image_path: {image_path} and prediction_info: {prediction_info}."
@@ -94,6 +120,15 @@ class InferenceService:
         contents: bytes,
         user_uid: uuid.UUID,
     ):
+        """Uploads the image contents to S3 storage.
+
+        Saves the provided image bytes to the specified path in the S3 bucket.
+
+        Args:
+            image_path (str): The path in S3 where the image should be stored.
+            contents (bytes): The raw image data as bytes.
+            user_uid (uuid.UUID): The unique identifier of the user.
+        """
         try:
             if self.s3 is not None:
                 # upload the image to the bucket
