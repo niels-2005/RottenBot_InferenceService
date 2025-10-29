@@ -221,3 +221,5 @@ model
 test.ipynb
 load_postgres_data.py 
 predictions.csv 
+info.txt 
+test_api.py 
