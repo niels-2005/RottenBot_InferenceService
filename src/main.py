@@ -19,19 +19,30 @@ async def lifespan(app: FastAPI):
     await init_db()
     setup_observability("inference_service")
 
-    if not Config.USE_LOCAL:
+    if Config.USE_LOCAL:
+        app.state.index_to_class = load_classes_from_mlflow(
+            run_id="/app/index_to_class.json",
+            dst_path=DST_PATH,
+            use_local=Config.USE_LOCAL,
+        )
+
+        app.state.model = load_model_from_mlflow(
+            model_uri="/app/model", dst_path=DST_PATH, use_local=Config.USE_LOCAL
+        )
+    else:
         if not os.path.exists(DST_PATH):
             os.makedirs(DST_PATH)
 
         mlflow.set_tracking_uri(Config.MLFLOW_TRACKING_URI)
 
-    app.state.index_to_class = load_classes_from_mlflow(
-        run_id=Config.RUN_ID, dst_path=DST_PATH, use_local=Config.USE_LOCAL
-    )
+        app.state.index_to_class = load_classes_from_mlflow(
+            run_id=Config.RUN_ID, dst_path=DST_PATH, use_local=Config.USE_LOCAL
+        )
 
-    app.state.model = load_model_from_mlflow(
-        Config.MODEL_URI, DST_PATH, use_local=Config.USE_LOCAL
-    )
+        app.state.model = load_model_from_mlflow(
+            Config.MODEL_URI, DST_PATH, use_local=Config.USE_LOCAL
+        )
+
     print("Model loaded and ready to use.")
     yield
 

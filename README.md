@@ -219,9 +219,6 @@ inference_service:
     ALLOY_ENDPOINT: ${ALLOY_ENDPOINT}
 
     USE_LOCAL: ${USE_LOCAL}
-
-    LOCAL_MODEL_PATH: ${LOCAL_MODEL_PATH}
-    LOCAL_INDEX_TO_JSON_PATH: ${LOCAL_INDEX_TO_JSON_PATH}
     
     MLFLOW_TRACKING_URI: ${MLFLOW_TRACKING_URI}
     MODEL_URI: ${MODEL_URI}
@@ -229,8 +226,7 @@ inference_service:
 ```
 
 **When `USE_LOCAL=true`:**
-- ✅ Model loaded from `LOCAL_MODEL_PATH` (pre-packaged in Docker image)
-- ✅ Class mapping loaded from `LOCAL_INDEX_TO_JSON_PATH`
+- ✅ Model and Classes are loaded from inside the Docker image
 - ✅ No MLflow server required
 - ✅ Faster startup, easier testing
 - ❌ No model versioning
@@ -245,7 +241,7 @@ inference_service:
 
 **⚠️ Important Note:**
 
-The `USE_LOCAL`, `LOCAL_MODEL_PATH`, and `LOCAL_INDEX_TO_JSON_PATH` variables **only exist for testing purposes**. In a real production deployment, these variables would not be used. Instead, all models would be loaded from the MLflow server set up in the **RottenBot_ExperimentTracking** microservice.
+The `USE_LOCAL` variable **only exists for testing purposes**. In a real production deployment, this variable would not be used. Instead, all models would be loaded from the MLflow server set up in the **RottenBot_ExperimentTracking** microservice. Alternatively, the model inside the Docker image could be used as a fallback, but this would not be controlled by an environment variable.
 
 ## 🤝 Integration with RottenBot Services
 
