@@ -7,7 +7,9 @@ import requests
 
 # Konfiguration
 API_URL = "http://127.0.0.1:8000/api/v1/inference/predict"
-DATASET_DIR = Path("/home/ubuntu/dev/fruit_vege_disease/original_dataset/dataset")
+DATASET_DIR = Path(
+    "/home/ubuntu/dev/RottenBot_ExpTracking/training_datasets/rottenbot_all_classesv1/test"
+)
 
 
 def load_test_api():

@@ -15,7 +15,7 @@ venv/
 # Docker-spezifisch
 Dockerfile
 .dockerignore
-docker-compose.yml  # Falls vorhanden
+docker-compose.yml  
 
 # Dokumentation und nicht-essenzielle Dateien
 README.md
@@ -47,9 +47,15 @@ models/  # Passe an, falls Modelle separat geladen werden
 tmp/
 temp/ 
 
-model 
 .python-version 
 Dockerfile.mlflow 
 info.txt 
 test_api.py 
 test.ipynb
+
+README.md 
+
+load_postgres_data.py 
+
+predictions.csv 
+

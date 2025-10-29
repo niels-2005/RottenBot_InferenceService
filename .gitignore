@@ -219,3 +219,5 @@ artifacts
 
 model 
 test.ipynb
+load_postgres_data.py 
+predictions.csv 

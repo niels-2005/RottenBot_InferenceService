@@ -14,10 +14,15 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.db.main import get_session
 
+from .dependencies import AccessTokenBearer
 from .schemas import PredictionResponse
 from .service import InferenceService
 from .setup_observability import get_meter, get_tracer
-from .utils import generate_image_path
+from .utils import (
+    generate_image_path,
+    record_inference_api_duration,
+    increase_inference_api_counter,
+)
 
 tracer = get_tracer(__name__)
 meter = get_meter(__name__)
@@ -27,18 +32,6 @@ logger = logging.getLogger(__name__)
 inference_router = APIRouter()
 inference_service = InferenceService()
 
-prediction_api_counter = meter.create_counter(
-    name="prediction_api_requests_total",
-    description="Total number of prediction API requests",
-    unit="1",
-)
-
-prediction_api_duration = meter.create_histogram(
-    name="prediction_api_duration_milliseconds",
-    description="Prediction API request duration",
-    unit="ms",
-)
-
 
 @inference_router.post("/predict", response_model=PredictionResponse)
 async def predict(
@@ -47,7 +40,13 @@ async def predict(
     user_uid: uuid.UUID,
     request: Request,
     background_tasks: BackgroundTasks,
+    token_details: dict = Depends(AccessTokenBearer()),
     session: AsyncSession = Depends(get_session),
+    endpoint_config: dict[str, str] = {
+        "endpoint": "/predict",
+        "method": "POST",
+        "service_name": "inference_service",
+    },
 ):
     """Handles prediction requests for uploaded images.
 
@@ -70,16 +69,10 @@ async def predict(
         HTTPException: If the file type is invalid or if prediction fails internally.
     """
     try:
-        start_time = time.time()
-        prediction_api_counter.add(
-            1,
-            {
-                "endpoint": "/predict",
-                "method": "POST",
-                "service_name": "inference_service",
-            },
-        )
         with tracer.start_as_current_span("predict_endpoint") as prediction_entry_span:
+            start_time = time.time()
+            increase_inference_api_counter(endpoint_config)
+
             logger.info(
                 f"User {user_uid} requested a prediction with save_prediction={save_prediction}."
             )
@@ -180,11 +173,4 @@ async def predict(
             return PredictionResponse(**prediction_info)
     finally:
         duration_ms = (time.time() - start_time) * 1000
-        prediction_api_duration.record(
-            duration_ms,
-            {
-                "endpoint": "/predict",
-                "method": "POST",
-                "service_name": "inference_service",
-            },
-        )
+        record_inference_api_duration(endpoint_config, duration_ms)

@@ -4,20 +4,69 @@ import uuid
 from datetime import datetime
 from typing import Tuple
 
+import jwt
 import boto3
 import numpy as np
 import tensorflow as tf
 
 from src.config import Config
+from .setup_observability import get_meter
+
+meter = get_meter(__name__)
 
 logger = logging.getLogger(__name__)
 
 
+# a meter to track inference API requests
+inference_api_counter = meter.create_counter(
+    name="inference_api_requests_total",
+    description="Total number of inference API requests",
+    unit="1",
+)
+
+# a histogram to track inference API request durations
+inference_api_duration = meter.create_histogram(
+    name="inference_api_duration_milliseconds",
+    description="Inference API request duration",
+    unit="ms",
+)
+
+
+def increase_inference_api_counter(endpoint_config: dict[str, str]) -> None:
+    """Increases the inference API counter for a specific endpoint.
+
+    Args:
+        endpoint_config (dict[str, str]): Configuration for the endpoint.
+    """
+    try:
+        inference_api_counter.add(1, **endpoint_config)
+    except Exception as e:
+        logger.error(
+            f"Error increasing inference API counter for endpoint {endpoint_config['endpoint']}: {e}",
+            exc_info=True,
+        )
+
+
+def record_inference_api_duration(
+    duration_ms: float, endpoint_config: dict[str, str]
+) -> None:
+    """Records the duration of an inference API request for a specific endpoint.
+
+    Args:
+        duration_ms (float): The duration of the API request in milliseconds.
+        endpoint_config (dict[str, str]): Configuration for the endpoint.
+    """
+    try:
+        inference_api_duration.record(duration_ms, **endpoint_config)
+    except Exception as e:
+        logger.error(
+            f"Error recording auth API duration for endpoint {endpoint_config['endpoint']}: {e}",
+            exc_info=True,
+        )
+
+
 async def preprocess_image(contents: bytes, image_size: Tuple[int, int]) -> tf.Tensor:
     """Preprocesses an uploaded image file for model inference.
-
-    Loads the image from the provided bytes, resizes it to the specified dimensions,
-    converts it to a numpy array, and adds a batch dimension for TensorFlow model input.
 
     Args:
         contents (bytes): The image file contents as bytes.
@@ -31,7 +80,7 @@ async def preprocess_image(contents: bytes, image_size: Tuple[int, int]) -> tf.T
             io.BytesIO(contents), target_size=image_size
         )
         image = tf.keras.preprocessing.image.img_to_array(image)
-        image = tf.expand_dims(image, 0)
+        image = tf.expand_dims(image, axis=0)
         return image
     except Exception as e:
         logger.error(f"Error preprocessing image: {e}", exc_info=True)
@@ -40,8 +89,6 @@ async def preprocess_image(contents: bytes, image_size: Tuple[int, int]) -> tf.T
 
 def get_prediction(model: tf.keras.Model, image: tf.Tensor) -> np.ndarray:
     """Runs inference on the preprocessed image using the given model.
-
-    Performs prediction on the input image tensor and returns the model's output.
 
     Args:
         model (tf.keras.Model): The trained TensorFlow/Keras model to use for inference.
@@ -59,9 +106,6 @@ def get_prediction(model: tf.keras.Model, image: tf.Tensor) -> np.ndarray:
 
 def connect_to_s3():
     """Connects to an S3-compatible service using boto3.
-
-    Creates a boto3 client for interacting with an S3-compatible storage service,
-    such as MinIO, using the provided configuration credentials and endpoint URL.
 
     Returns:
         boto3.client or None: The S3 client instance if successful, otherwise None.
@@ -81,9 +125,6 @@ def connect_to_s3():
 def generate_image_path(filename: str) -> str:
     """Generates a unique image path based on the provided filename.
 
-    Creates a unique file path by combining a timestamp, a short UUID, and the file extension
-    from the original filename, ensuring uniqueness for storage purposes.
-
     Args:
         filename (str): The original filename, used to extract the file extension.
 
@@ -98,3 +139,20 @@ def generate_image_path(filename: str) -> str:
     except Exception as e:
         logger.error(f"Error generating image path: {e}", exc_info=True)
         return None
+
+
+def decode_token(token: str) -> dict:
+    """Decodes a JWT token and returns its payload.
+
+    Args:
+        token: The JWT token to decode.
+
+    Returns:
+        A dictionary containing the decoded token payload.
+    """
+    try:
+        return jwt.decode(
+            jwt=token, algorithms=[Config.JWT_ALGORITHM], key=Config.JWT_SECRET
+        )
+    except Exception as e:
+        logger.error(f"Error decoding token: {e}", exc_info=True)

@@ -9,7 +9,15 @@ class Settings(BaseSettings):
     MINIO_ROOT_USER: str
     MINIO_ROOT_PASSWORD: str
     LOCAL_S3_PROXY_SERVICE_URL: str
-    OBSERVABILITY_ENDPOINT: str
+    ALLOY_ENDPOINT: str
+    LOCAL_MODEL_PATH: str
+    LOCAL_INDEX_TO_JSON_PATH: str
+    REDIS_PASSWORD: str
+    REDIS_HOST: str
+    REDIS_PORT: int
+    JWT_SECRET: str
+    JWT_ALGORITHM: str
+    USE_LOCAL: bool
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
 

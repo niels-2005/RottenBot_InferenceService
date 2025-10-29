@@ -7,6 +7,7 @@ from fastapi import FastAPI
 from .config import Config
 from .db.main import init_db
 from .inference.routes import inference_router
+from .inference.setup_observability import setup_observability
 from .utils.load_model import load_classes_from_mlflow, load_model_from_mlflow
 
 # path where the model and index_to_class.json will be stored
@@ -15,17 +16,22 @@ DST_PATH = "./model"
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # await init_db()
+    await init_db()
+    setup_observability("inference_service")
 
-    if not os.path.exists(DST_PATH):
-        os.makedirs(DST_PATH)
+    if not Config.USE_LOCAL:
+        if not os.path.exists(DST_PATH):
+            os.makedirs(DST_PATH)
 
-    mlflow.set_tracking_uri(Config.MLFLOW_TRACKING_URI)
+        mlflow.set_tracking_uri(Config.MLFLOW_TRACKING_URI)
 
     app.state.index_to_class = load_classes_from_mlflow(
-        run_id=Config.RUN_ID, dst_path=DST_PATH
+        run_id=Config.RUN_ID, dst_path=DST_PATH, use_local=Config.USE_LOCAL
     )
-    app.state.model = load_model_from_mlflow(Config.MODEL_URI, DST_PATH)
+
+    app.state.model = load_model_from_mlflow(
+        Config.MODEL_URI, DST_PATH, use_local=Config.USE_LOCAL
+    )
     print("Model loaded and ready to use.")
     yield
 

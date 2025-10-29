@@ -2,7 +2,7 @@ services:
   # postgres service.
   postgres:
     container_name: postgres
-    image: postgres:latest
+    image: postgres:15
     ports:
       - "5432:5432"
     environment:
@@ -13,6 +13,17 @@ services:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - default
+  # redis service.
+  redis:
+    container_name: redis
+    image: redis:latest
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --requirepass ${REDIS_PASSWORD}
+    depends_on:
+      - postgres
   # mlflow service.
   mlflow-server:
     container_name: mlflow-server
@@ -44,3 +55,5 @@ volumes:
     name: mlflow-data
   minio-data:
     name: minio-data
+  redis_data:
+    name: redis-data
