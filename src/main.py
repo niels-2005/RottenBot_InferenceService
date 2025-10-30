@@ -25,7 +25,7 @@ async def lifespan(app: FastAPI):
         )
 
         app.state.model = load_model_from_mlflow(
-            model_uri="/app/model", dst_path=DST_PATH, use_local=True
+            model_uri="/app/model/data/model.keras", dst_path=DST_PATH, use_local=True
         )
     else:
         if not os.path.exists(DST_PATH):

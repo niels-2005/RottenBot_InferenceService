@@ -31,8 +31,10 @@ def load_model_from_mlflow(
     try:
         if use_local:
             print("DEBUG: Loading model from local path")
-            logger.info(f"Loading model from local path:")
-            model = mlflow.tensorflow.load_model(model_uri)
+            logger.info(f"Loading model from local path: {model_uri}")
+            # When loading locally, load directly with Keras from the data subdirectory
+            print(f"DEBUG: Loading model from: {model_uri}")
+            model = tf.keras.models.load_model(model_uri)
             return model
         else:
             print("DEBUG: Loading model from MLflow")
