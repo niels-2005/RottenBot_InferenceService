@@ -15,7 +15,7 @@ venv/
 # Docker-spezifisch
 Dockerfile
 .dockerignore
-docker-compose.yml  
+docker-compose.yaml  
 
 # Dokumentation und nicht-essenzielle Dateien
 README.md
@@ -38,11 +38,6 @@ tests/
 .idea/
 *.swp
 *.swo
-
-# MLflow oder Modell-Dateien (falls groß und nicht benötigt)
-mlruns/
-models/  # Passe an, falls Modelle separat geladen werden
-
 # Temporäre Dateien
 tmp/
 temp/ 
@@ -59,3 +54,6 @@ load_postgres_data.py
 
 predictions.csv 
 
+readme_images 
+
+.github
