@@ -1,4 +1,34 @@
 services:
+  # inference service.
+  inference_service:
+    container_name: inference_service
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ALGORITHM: ${JWT_ALGORITHM}
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+      LOCAL_S3_PROXY_SERVICE_URL: ${LOCAL_S3_PROXY_SERVICE_URL}
+      ALLOY_ENDPOINT: ${ALLOY_ENDPOINT}
+      USE_LOCAL: ${USE_LOCAL}
+      MLFLOW_TRACKING_URI: ${MLFLOW_TRACKING_URI}
+      MODEL_URI: ${MODEL_URI}
+      RUN_ID: ${RUN_ID}
+    networks:
+      - default
+    restart: unless-stopped
+    depends_on:
+      - postgres
+      - redis
+      - minio
   # postgres service.
   postgres:
     container_name: postgres
@@ -9,8 +39,8 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
+    # volumes:
+    #   - postgres_data:/var/lib/postgresql/data
     networks:
       - default
   # redis service.
@@ -19,21 +49,11 @@ services:
     image: redis:latest
     ports:
       - "6379:6379"
-    volumes:
-      - redis_data:/data
+    # volumes:
+    #   - redis_data:/data
     command: redis-server --requirepass ${REDIS_PASSWORD}
     depends_on:
       - postgres
-  # mlflow service.
-  mlflow-server:
-    container_name: mlflow-server
-    build:
-      context: .
-      dockerfile: Dockerfile.mlflow
-    ports:
-      - "5000:5000"
-    volumes:
-      - mlflow-data:/mlflow
   # minio service. simulate s3 for local dev.
   minio:
     container_name: minio
@@ -44,16 +64,15 @@ services:
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
-    volumes:
-      - minio-data:/data
+    # volumes:
+    #   - minio-data:/data
     command: server /data --address :8997 --console-address :8998
-
-volumes:
-  postgres_data:
-    name: postgres-data
-  mlflow-data:
-    name: mlflow-data
-  minio-data:
-    name: minio-data
-  redis_data:
-    name: redis-data
+# volumes:
+#   postgres_data:
+#     name: postgres-data
+#   mlflow-data:
+#     name: mlflow-data
+#   minio-data:
+#     name: minio-data
+#   redis_data:
+#     name: redis-data
