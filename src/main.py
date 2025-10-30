@@ -21,13 +21,11 @@ async def lifespan(app: FastAPI):
 
     if Config.USE_LOCAL:
         app.state.index_to_class = load_classes_from_mlflow(
-            run_id="/app/index_to_class.json",
-            dst_path=DST_PATH,
-            use_local=Config.USE_LOCAL,
+            run_id="/app/index_to_class.json", dst_path=DST_PATH, use_local=True
         )
 
         app.state.model = load_model_from_mlflow(
-            model_uri="/app/model", dst_path=DST_PATH, use_local=Config.USE_LOCAL
+            model_uri="/app/model", dst_path=DST_PATH, use_local=True
         )
     else:
         if not os.path.exists(DST_PATH):

@@ -31,8 +31,8 @@ def load_model_from_mlflow(
     try:
         if use_local:
             print("DEBUG: Loading model from local path")
-            logger.info(f"Loading model from local path: {Config.LOCAL_MODEL_PATH}")
-            model = mlflow.tensorflow.load_model(Config.LOCAL_MODEL_PATH)
+            logger.info(f"Loading model from local path:")
+            model = mlflow.tensorflow.load_model(model_uri)
             return model
         else:
             print("DEBUG: Loading model from MLflow")
@@ -68,10 +68,8 @@ def load_classes_from_mlflow(
     try:
         if use_local:
             print("DEBUG: Loading class names from local path")
-            logger.info(
-                f"Loading class names from local path: {Config.LOCAL_INDEX_TO_JSON_PATH}"
-            )
-            with open(Config.LOCAL_INDEX_TO_JSON_PATH, "r") as f:
+            logger.info(f"Loading class names from local path: {run_id}")
+            with open(run_id, "r") as f:
                 class_names = json.load(f)
             return class_names
         else:
