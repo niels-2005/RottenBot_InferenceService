@@ -6,7 +6,7 @@ on:
 
 env:
   IMAGE_NAME: rotten_bot_inference
-  IMAGE_TAG: latest
+  IMAGE_TAG: 0.1.0
 
 jobs:
   docker:
@@ -33,5 +33,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest
           no-cache: true
