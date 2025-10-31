@@ -1,5 +1,6 @@
 import os
 from contextlib import asynccontextmanager
+import urllib.request
 
 import mlflow
 from fastapi import FastAPI
@@ -24,8 +25,12 @@ async def lifespan(app: FastAPI):
             run_id="/app/index_to_class.json", dst_path=DST_PATH, use_local=True
         )
 
+        # Download model.keras because github ci dont save the model file properly
+        model_url = "https://raw.githubusercontent.com/niels-2005/RottenBot_InferenceService/main/model/data/model.keras"
+        urllib.request.urlretrieve(model_url, "/app/model.keras")
+
         app.state.model = load_model_from_mlflow(
-            model_uri="/app/model/data/model.keras", dst_path=DST_PATH, use_local=True
+            model_uri="/app/model.keras", dst_path=DST_PATH, use_local=True
         )
     else:
         if not os.path.exists(DST_PATH):
