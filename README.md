@@ -4,7 +4,7 @@
 
 This repository provides the **ML inference microservice** for the RottenBot project. Built with **FastAPI** and **TensorFlow**, this service handles real-time image classification requests, providing predictions on whether tomatoes are fresh or rotten. The service emphasizes **high performance**, **comprehensive observability**, and **secure authentication**.
 
-The Inference Service was developed to demonstrate production-ready ML inference patterns, including model loading from MLflow, efficient background task processing, and distributed tracing. It integrates seamlessly with the RottenBot ecosystem through JWT-based authentication provided by the RottenBot_AuthService.
+The Inference Service was developed to demonstrate ML inference patterns, including model loading from MLflow or local filesystem, efficient background task processing, and distributed tracing. It integrates seamlessly with the RottenBot ecosystem through JWT-based authentication provided by the RottenBot_AuthService.
 
 ## ✨ Key Features
 
@@ -17,7 +17,7 @@ The Inference Service was developed to demonstrate production-ready ML inference
 
 ### Performance & Scalability
 - ⚡ **FastAPI Background Tasks** to minimize endpoint latency
-- 🚀 **Impressive Performance**: Q99 latency at **98.1ms** with ~500 requests/minute
+- 🚀 **Impressive Performance**: Q99 latency at **98.3ms** with ~900 requests/minute
 - 📊 **Async Database Operations** using SQLModel with AsyncSession
 - 💾 **Redis Integration** for token validation
 
@@ -67,28 +67,10 @@ All uploaded images are automatically stored in **MinIO** (S3-compatible storage
 
 ![MinIO S3 Storage](readme_images/minio_s3.png)
 
-## 🚀 Performance Metrics
-
-### Load Test Results
-
-The service was tested on local hardware with impressive results:
-
-- **Throughput**: ~500 requests per minute
-- **P99 Latency**: 98.1ms (99th percentile)
-- **Hardware**: Local development machine (localhost)
-
-**Important Notes:**
-- Tests were conducted on `localhost`, eliminating network latency
-- Real-world production latency will include network overhead
-- Background tasks (DB writes, S3 uploads) don't block the response
-- Full load test details and screenshots available in the main [RottenBot repository](https://github.com/niels-2005/RottenBot)
-
 ## 🔍 API Endpoints Overview
 
 ### POST /api/v1/inference/predict
 **Perform image classification inference**
-
-**Authentication Required**: Yes (JWT Access Token)
 
 **Request Parameters:**
 - `file` (UploadFile): The image file (JPEG/PNG)
@@ -249,14 +231,6 @@ This inference service integrates with:
 
 - **RottenBot_AuthService** - JWT authentication and user management
 - **RottenBot_ExperimentTracking** - MLflow model registry and versioning
-- **Future Services** - Additional microservices can consume predictions via shared PostgreSQL
-
-### Cross-Service Authentication
-
-All services in the RottenBot ecosystem share:
-- JWT secret for token validation
-- Redis instance for token revocation
-- Consistent user UUID format
 
 ## 🤖 CI/CD Pipeline
 
