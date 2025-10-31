@@ -5,7 +5,7 @@ on:
     branches: [ main ]
 
 env:
-  IMAGE_NAME: rotten_bot_auth
+  IMAGE_NAME: rotten_bot_inference
   IMAGE_TAG: latest
 
 jobs:
