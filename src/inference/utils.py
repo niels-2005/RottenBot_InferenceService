@@ -39,7 +39,7 @@ def increase_inference_api_counter(endpoint_config: dict[str, str]) -> None:
         endpoint_config (dict[str, str]): Configuration for the endpoint.
     """
     try:
-        inference_api_counter.add(1, **endpoint_config)
+        inference_api_counter.add(1, attributes=endpoint_config)
     except Exception as e:
         logger.error(
             f"Error increasing inference API counter for endpoint {endpoint_config['endpoint']}: {e}",
@@ -57,7 +57,7 @@ def record_inference_api_duration(
         endpoint_config (dict[str, str]): Configuration for the endpoint.
     """
     try:
-        inference_api_duration.record(duration_ms, **endpoint_config)
+        inference_api_duration.record(duration_ms, attributes=endpoint_config)
     except Exception as e:
         logger.error(
             f"Error recording auth API duration for endpoint {endpoint_config['endpoint']}: {e}",

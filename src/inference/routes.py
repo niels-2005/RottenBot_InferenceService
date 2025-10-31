@@ -173,4 +173,4 @@ async def predict(
             return PredictionResponse(**prediction_info)
     finally:
         duration_ms = (time.time() - start_time) * 1000
-        record_inference_api_duration(endpoint_config, duration_ms)
+        record_inference_api_duration(duration_ms, endpoint_config)

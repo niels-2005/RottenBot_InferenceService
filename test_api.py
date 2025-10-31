@@ -11,6 +11,9 @@ DATASET_DIR = Path(
     "/home/ubuntu/dev/RottenBot_ExpTracking/training_datasets/rottenbot_all_classesv1/test"
 )
 
+ACCESS_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7InVzZXJfdWlkIjoiODIzYzM4MzMtZTU4Ny00ZWQ3LWJhODAtNzRkNTViNjg4YjIxIn0sImV4cCI6MTc2MTkyOTE1NCwianRpIjoiYjQ1ZjQzYjItODM3Ni00YjljLWFiNDMtOTg3ZTJlMzg0MzBlIiwicmVmcmVzaCI6ZmFsc2V9.R2AkCfC7PmYzgKOQ1aV-6EZGGIyWAo4An16WMkwY_UM"
+HEADERS = {"Authorization": f"Bearer {ACCESS_TOKEN}"}
+
 
 def load_test_api():
     # Alle Ordner im Dataset-Verzeichnis finden
@@ -66,11 +69,18 @@ def load_test_api():
                 with open(image_path, "rb") as img_file:
                     files = {"file": (image_path.name, img_file, "image/jpeg")}
                     response = requests.post(
-                        API_URL, params=params, files=files, timeout=timeout
+                        API_URL,
+                        params=params,
+                        files=files,
+                        timeout=timeout,
+                        headers=HEADERS,
                     )
 
                     request_count += 1
                     first_request = False
+
+                    response_message = response.json()
+                    print(response_message)
 
                     if response.status_code == 200:
                         data = response.json()

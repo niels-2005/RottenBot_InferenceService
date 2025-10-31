@@ -5,8 +5,8 @@ on:
     branches: [ main ]
 
 env:
-  IMAGE_NAME: rotten_bot_inference
-  IMAGE_TAG: 0.1.0
+  IMAGE_NAME: rotten_bot_auth
+  IMAGE_TAG: latest
 
 jobs:
   docker:
@@ -25,15 +25,8 @@ jobs:
         name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       -
-        name: Checkout code
-        uses: actions/checkout@v4
-      -
         name: Build and push
         uses: docker/build-push-action@v6
         with:
-          context: .
           push: true
-          tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest
-          no-cache: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
