@@ -11,7 +11,7 @@ from .inference.routes import inference_router
 from .inference.setup_observability import setup_observability
 from .utils.load_model import load_classes_from_mlflow, load_model_from_mlflow
 
-# path where the model and index_to_class.json will be stored
+# path where the model and index_to_class.json will be storeds
 DST_PATH = "./model"
 
 
